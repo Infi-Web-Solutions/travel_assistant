@@ -1,0 +1,124 @@
+{
+  "qa_data": [
+    {
+      "question": "What is the definition of tourism as per WTO?",
+      "answer": "According to the WTO, tourism is the movement of people away from their usual place of residence and work for a period of not less than 24 hours and not more than 1 year for leisure, business, or other purposes."
+    },
+    {
+      "question": "What are the main components of tourism?",
+      "answer": "The main components are Attraction, Accessibility, Accommodation, Amenities, and Activities."
+    },
+    {
+      "question": "Define a travel agency and its role.",
+      "answer": "A travel agency arranges travel-related services like transport, accommodation, and documentation for clients."
+    },
+    {
+      "question": "What distinguishes a retail travel agency from a wholesale one?",
+      "answer": "Retail agencies deal with customers directly, while wholesale agencies prepare tour packages sold via retail or directly."
+    },
+    {
+      "question": "What are the qualities of a professional travel agent?",
+      "answer": "Knowledge, professionalism, enthusiasm, people skills, integrity, resourcefulness, and empathy."
+    },
+    {
+      "question": "How has IT impacted tourism services?",
+      "answer": "IT facilitates e-tourism, including booking, information sharing, and automation of services."
+    },
+    {
+      "question": "What are CRS and GDS in tourism?",
+      "answer": "CRS (Computer Reservation System) and GDS (Global Distribution System) are digital tools for booking and distributing travel services."
+    },
+    {
+    "question": "What are the key differences between mass tourism and alternative tourism?",
+    "answer": "Mass tourism involves large groups visiting well-developed destinations (e.g., resorts, theme parks), whereas alternative tourism is self-planned and focuses on local cultures and secluded areas (e.g., biking through Vermont)."
+  },
+  {
+    "question": "Compare ecotourism, adventure tourism, and wilderness tourism. How are they linked?",
+    "answer": "All are part of sustainable tourism; ecotourism emphasizes nature with low impact, adventure tourism involves physical challenges, and wilderness tourism explores remote areas."
+  },
+  {
+    "question": "How is wildlife tourism diversified across different regions in India?",
+    "answer": "Each region offers unique species and landscapes—e.g., Kaziranga in East (rhinos), Jim Corbett in North (tigers), Periyar in South (elephants)."
+  },
+  {
+    "question": "Explain the architectural and cultural significance of the Red Fort and Agra Fort.",
+    "answer": "Red Fort: Mughal structure, gold-inlaid marble, site of Independence Day celebrations. Agra Fort: Early Mughal fortress with palaces and mosques."
+  },
+  {
+    "question": "What makes pilgrimage tourism distinct from other forms of tourism?",
+    "answer": "It's motivated by spirituality, involves rituals and transformative journeys to sacred sites (e.g., Vaishno Devi), not leisure."
+  },
+  {
+    "question": "Name four major Hindu pilgrimage destinations and their significance.",
+    "answer": "Badrinath (Vishnu), Jagannath (Odisha), Rameswaram (Shiva), Dwarka (Krishna)—they form the Char Dham."
+  },
+  {
+    "question": "How does tourism impact the economy both positively and negatively?",
+    "answer": "Positives: Foreign exchange, jobs, infrastructure. Negatives: Price inflation, seasonal employment, infrastructure burden."
+  },
+  {
+    "question": "Discuss the social effects of tourism on host communities.",
+    "answer": "Positive: Cultural exchange, status, improved services. Negative: Crime, disease, family structure changes, 'demonstration effect'."
+  },
+  {
+    "question": "What are the cultural implications of tourism on local traditions and heritage?",
+    "answer": "It promotes heritage and handicrafts but also leads to dilution, commercialization, and alteration of local art forms."
+  },
+    {
+      "question": "define inbound and outbound tourism with examples.",
+      "answer": "inbound tourism: foreign tourists entering a country (e.g., indian tourist in japan = inbound for japan). outbound tourism: citizens traveling to another country (e.g., indian tourist in japan = outbound for india)."
+    },
+    {
+      "question": "how do the different forms of tourism (e.g., space, medical, sustainable) reflect traveler motivations?",
+      "answer": "these forms reflect specific interests—medical for health, space for innovation seekers, and sustainable for eco-conscious travelers."
+    },
+    {
+      "question": "explain the concept of incentive tourism and its business implications.",
+      "answer": "companies reward high-performing employees or partners with holiday trips instead of cash, leading to a $3 billion industry in the usa."
+    },
+    {
+      "question": "how does intra-regional tourism influence regional development?",
+      "answer": "it boosts economic, political, and social integration, reduces regional disparities, and increases income distribution."
+    },
+    {
+      "question": "what role does environment play in destination appeal for tourists?",
+      "answer": "favorable weather promotes tourism; extreme climate events (floods, droughts) deter visitors."
+    },
+    {
+      "question": "how does tourism contribute to environmental conservation and degradation?",
+      "answer": "positive: promotes conservation and awareness. negative: pollution, resource overuse, habitat destruction."
+    },
+    {
+      "question": "in what ways does tourism alter local social structures and lifestyles?",
+      "answer": "can foster pride and eradicate poverty, but also disrupt family structures, introduce vice, and spread diseases."
+    },
+    {
+      "question": "what are allocentric tourists and how do they behave?",
+      "answer": "they are adventurous, prefer non-traditional travel, are risk-takers, and spend more on new experiences."
+    },
+    {
+      "question": "contrast allocentric, midcentric, and psychocentric tourist types.",
+      "answer": "allocentric: explorers, self-directed. midcentric: balance of both. psychocentric: dependable, prefer safety and routine."
+    },
+    {
+      "question": "describe the segmentation of india’s outbound travelers.",
+      "answer": "includes business travelers, mice travelers, vfr (visiting friends and relatives), honeymooners, jet setters, and women-only travelers."
+    },
+    {
+      "question": "how has the covid-19 pandemic influenced tourism recovery in new zealand?",
+      "answer": "through the strategic tourism assets protection programme, māori tourism support, and sme digital training programs."
+    },
+    {
+      "question": "explain the concept and significance of “bicycle service standard for tourism” in thailand.",
+      "answer": "a framework to ensure safety, quality, and growth of bicycle tourism, promoting sustainability and stakeholder involvement."
+    },
+    {
+      "question": "how has india's government supported tourism development?",
+      "answer": "via schemes like swadesh darshan, prasad, e-visa expansion, incredible india campaigns, and fdi incentives."
+    },
+    {
+      "question": "what are the challenges to india’s tourism growth despite its potential?",
+      "answer": "include poor infrastructure, safety concerns, accessibility issues, and underutilized religious/cultural sites."
+    }
+  ]
+}

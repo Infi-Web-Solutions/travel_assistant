@@ -1,0 +1,14 @@
+
+{
+  "dockerfile_lines": [],
+  "graphs": {
+    "delete": "./graph_agent.py:graph"
+  },
+  "env": [
+    "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"
+  ],
+  "python_version": "3.11",
+  "dependencies": [
+    "."
+  ]
+}

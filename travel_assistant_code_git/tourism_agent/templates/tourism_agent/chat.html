@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tourism Agent Chat</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
+
+  <style>
+    @keyframes blink {
+      0% {
+        opacity: 0.2;
+      }
+
+      20% {
+        opacity: 1;
+      }
+
+      100% {
+        opacity: 0.2;
+      }
+    }
+
+    .dot {
+      animation: blink 1.4s infinite both;
+    }
+
+    .dot:nth-child(2) {
+      animation-delay: 0.2s;
+    }
+
+    .dot:nth-child(3) {
+      animation-delay: 0.4s;
+    }
+
+    /* Original highlighted-word (one-gram) */
+    .highlighted-word {
+      background-color: yellow;
+      padding: 0 4px;
+      border-radius: 4px;
+      font-weight: normal;
+    }
+
+    /* New CSS for four-gram highlighting */
+    .highlighted-four-gram {
+      background-color: #add8e6;
+      /* Light blue for four-gram match */
+      padding: 0 4px;
+      border-radius: 4px;
+      font-weight: bold;
+    }
+
+    /* Existing styles - keep them */
+    .highlighted-sentence,
+    .highlighted-trigram {
+      background-color: yellow;
+      padding: 0 4px;
+      border-radius: 4px;
+      font-weight: normal;
+    }
+
+    .highlighted-trigram {
+      font-weight: bold;
+    }
+
+    /* Modal Styles */
+    .modal-content {
+      background-color: #fefefe;
+      margin: auto;
+      padding: 20px;
+      border-radius: 8px;
+      width: 90%;
+      max-width: 900px;
+      height: 90%;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+
+    .close-button {
+      color: #aaa;
+      font-size: 28px;
+      font-weight: bold;
+      position: absolute;
+      top: 10px;
+      right: 20px;
+      cursor: pointer;
+    }
+
+    .close-button:hover,
+    .close-button:focus {
+      color: black;
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    .pdf-iframe {
+      flex-grow: 1;
+      width: 100%;
+      border: none;
+    }
+
+    /* Custom styling for the beautiful button */
+    .beautiful-button {
+      transition: all 0.2s ease-in-out;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .beautiful-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
+    }
+
+    /* IMPORTANT: Remove or modify whitespace-pre-wrap for chat bubbles */
+    /* This allows ul/ol/li to render as actual HTML elements */
+    /* You can use white-space: normal; or white-space: pre-line; based on your needs */
+    /* pre-line will preserve newlines and wrap, normal will just wrap */
+    .chat-bubble-content {
+      white-space: normal;
+      /* Allows normal HTML rendering and text wrapping */
+      word-wrap: break-word;
+      /* Ensures long words break */
+    }
+
+    .chat-bubble-content ul,
+    .chat-bubble-content ol {
+      list-style: disc;
+      /* For unordered lists (bullets) */
+      padding-left: 20px;
+      /* Add some indentation for the list */
+      margin-top: 5px;
+      /* Optional: Space above the list */
+      margin-bottom: 5px;
+      /* Optional: Space below the list */
+    }
+
+    .chat-bubble-content ol {
+      list-style: decimal;
+      /* For ordered lists (numbers) */
+    }
+
+    .chat-bubble-content li {
+      margin-bottom: 2px;
+      /* Optional: Small spacing between list items */
+    }
+
+    /* Your existing chat bubble content class */
+    .chat-bubble-content {
+      white-space: normal;
+      word-wrap: break-word;
+    }
+  </style>
+</head>
+
+<body
+  class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen flex items-center justify-center font-sans px-4 py-6">
+  <div class="w-full max-w-7xl bg-white shadow-2xl rounded-3xl flex flex-col lg:flex-row overflow-hidden h-[90vh]">
+    <div class="w-full lg:w-2/3 flex flex-col p-6 border-r border-gray-200">
+      <h1 class="text-2xl font-bold text-center text-indigo-700 mb-4">🌍 Travel Chat Assistant</h1>
+      <div id="chatBox" class="flex-1 overflow-y-auto p-4 border rounded-lg bg-gray-50 shadow-inner scroll-smooth mb-3">
+      </div>
+      <div class="flex items-center space-x-2">
+        <input type="text" id="userInput" placeholder="Ask me about travel..."
+          class="flex-1 px-4 py-2 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-400" />
+        <button onclick="sendMessage()"
+          class="bg-blue-600 text-white px-5 py-2 rounded-full hover:bg-blue-700 transition">Send</button>
+      </div>
+    </div>
+    <div class="w-full lg:w-1/3 bg-gray-100 p-4 overflow-y-auto bg-white">
+      <div class="flex justify-between items-center mb-2 sticky top-0 bg-gray-100 z-10 py-2">
+  <h2 class="text-lg font-semibold text-gray-800">📄 Supporting Documents</h2>
+  <div class="flex space-x-2">
+    <button onclick="goToPreviousHighlight()" class="px-3 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600">⬅ Prev</button>
+    <button onclick="goToNextHighlight()" class="px-3 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600">Next ➡</button>
+  </div>
+</div>
+
+
+      <div id="referencePanel" class="text-sm text-gray-700 whitespace-pre-wrap max-h-full"></div>
+
+      <div id="pdfModal" class="hidden mt-4 p-4 bg-white rounded-lg shadow max-h-[100vh] overflow-y-auto">
+        <div class="flex justify-between items-center mb-2">
+          <span class="font-semibold text-gray-700">📄 PDF Preview</span>
+          <button class="text-gray-500 hover:text-gray-800" onclick="closePdfModal()">✖</button>
+        </div>
+        <div id="pdfTextContent" class="text-gray-800 whitespace-pre-wrap leading-relaxed text-sm"></div>
+      </div>
+    </div>
+
+
+    <script>
+      const pdfModal = document.getElementById("pdfModal");
+      const pdfViewer = document.getElementById("pdfViewer"); // This is not used, can be removed
+      let allHighlightIds = [];
+
+      let targetFourGramText = null;
+      let currentHighlightIndex = -1; // Not used for this specific request, but kept for consistency
+
+      let targetHighlightIdForScroll = null; // Renamed to avoid confusion with parameter
+
+
+      async function openPdfModal(url, highlightId = null, fourGramText = null) {
+        console.log("openPdfModal called with highlightId:", highlightId, "fourGramText:", fourGramText);
+
+        const pdfModal = document.getElementById("pdfModal");
+        const container = document.getElementById("pdfTextContent");
+
+        pdfModal.classList.remove("hidden");
+        container.innerHTML = "<em>Loading PDF text…</em>";
+
+        allHighlightIds = []; // Clear previous highlight IDs
+        currentHighlightIndex = -1; // Reset index
+        targetHighlightIdForScroll = highlightId;
+        targetFourGramText = fourGramText;
+
+        console.log("Target highlight ID for scroll:", targetHighlightIdForScroll);
+        console.log("Target four-gram text:", targetFourGramText);
+
+        try {
+          const loading = pdfjsLib.getDocument(url);
+          const pdf = await loading.promise;
+
+          container.innerHTML = ''; // Clear previous content
+
+          let fullPdfTextContent = ""; // Accumulate full PDF text
+
+          for (let i = 1; i <= pdf.numPages; i++) {
+            const page = await pdf.getPage(i);
+            const content = await page.getTextContent();
+            let pageText = content.items.map(item => item.str).join(' ');
+            pageText = pageText.replace(/\s+/g, ' ').trim();
+            fullPdfTextContent += pageText + "\n";
+          }
+
+          const p = document.createElement('p');
+
+          // Highlight text and render it
+          p.innerHTML = highlightFourGrams(
+            fullPdfTextContent,
+            matchedParagraphContent,
+            "highlighted-four-gram",
+            true,
+            targetHighlightIdForScroll,
+            targetFourGramText
+          );
+
+          console.log("Generated innerHTML:", p.innerHTML);
+          container.appendChild(p);
+
+          // --- Scroll to the first highlighted span ---
+          const maxAttempts = 50;
+          let attempts = 0;
+
+          const scrollInterval = setInterval(() => {
+            const highlightedSpans = document.getElementsByClassName("highlighted-four-gram");
+            const element = highlightedSpans[0];
+
+            if (element) {
+              clearInterval(scrollInterval);
+              element.scrollIntoView({
+                behavior: 'smooth',
+                block: 'center'
+              });
+              element.style.outline = '2px solid red';
+
+              setTimeout(() => {
+                element.style.outline = 'none';
+              }, 1500);
+            }
+
+            if (element || attempts >= maxAttempts) {
+              clearInterval(scrollInterval);
+              targetHighlightIdForScroll = null;
+              targetFourGramText = null;
+            }
+
+            attempts++;
+          }, 50); // Retry every 50ms
+
+        } catch (err) {
+          console.error("Error loading or processing PDF:", err);
+          container.innerHTML = "<strong>Error loading PDF.</strong>";
+        }
+      }
+
+      function closePdfModal() {
+        const pdfModal = document.getElementById("pdfModal");
+        const container = document.getElementById("pdfTextContent");
+        pdfModal.classList.add("hidden");
+        container.innerHTML = "";
+        allHighlightIds = []; // Clear highlights when closing modal
+        currentHighlightIndex = -1;
+        targetHighlightIdForScroll = null; // Clear on close
+        targetFourGramText = null; // Clear on close
+      }
+
+      // Helper function to process content before setting innerHTML
+      function formatChatContent(text) {
+        if (text.includes('<ul') || text.includes('<ol') || text.includes('<li')) {
+          return linkify(text);
+        } else {
+          return linkify(text.replace(/\n/g, '<br>'));
+        }
+      }
+
+      function goToHighlight(index) {
+  if (allHighlightIds.length === 0) return;
+
+  const boundedIndex = Math.max(0, Math.min(index, allHighlightIds.length - 1));
+  currentHighlightIndex = boundedIndex;
+
+  const targetId = allHighlightIds[boundedIndex];
+  const targetEl = document.getElementById(targetId);
+
+  if (targetEl) {
+    targetEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    targetEl.style.outline = '2px solid red';
+
+    setTimeout(() => {
+      targetEl.style.outline = 'none';
+    }, 1200);
+  }
+}
+
+function goToNextHighlight() {
+  if (currentHighlightIndex < allHighlightIds.length - 1) {
+    goToHighlight(currentHighlightIndex + 1);
+  }
+}
+
+function goToPreviousHighlight() {
+  if (currentHighlightIndex > 0) {
+    goToHighlight(currentHighlightIndex - 1);
+  }
+}
+
+      function linkify(text) {
+        const markdownLinkRegex = /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g;
+        text = text.replace(markdownLinkRegex, (match, label, url) => {
+          const cleanUrl = url.trim();
+          if (cleanUrl.endsWith(".pdf")) {
+            return `<a href="#" onclick="openPdfModal('${encodeURI(cleanUrl)}')" class="text-blue-600 underline">${label}</a>`;
+          }
+          return `<a href="${cleanUrl}" class="text-blue-600 underline" target="_blank">${label}</a>`;
+        });
+
+        const urlRegex = /(https?:\/\/[^\s<]+)/g;
+        return text.replace(urlRegex, (url) => {
+          let cleanUrl = url.trim().replace(/[.,)\]}]+$/, '');
+          if (cleanUrl.endsWith(".pdf")) {
+            return `<a href="#" onclick="openPdfModal('${encodeURI(cleanUrl)}')" class="text-blue-600 underline">[>]</a>`;
+          }
+          return `<a href="${cleanUrl}" class="text-blue-600 underline" target="_blank">${cleanUrl}</a>`;
+        });
+      }
+
+      function generateNGrams(text, n) {
+        const words = text.toLowerCase().replace(/\s+/g, ' ').trim().split(/\s+/);
+        const ngrams = new Set();
+        if (words.length < n) {
+          return ngrams;
+        }
+        for (let i = 0; i <= words.length - n; i++) {
+          ngrams.add(words.slice(i, i + n).join(' '));
+        }
+        return Array.from(ngrams);
+      }
+
+      let highlightIdCounter = 0; // Global counter for unique highlight IDs
+
+      // Modified highlightFourGrams to correctly assign target ID
+      function highlightFourGrams(text, matchedText, className, assignAllIds = false, targetScrollId = null, targetScrollFourGram = null) {
+        if (!matchedText) return text;
+
+        let highlightedText = text;
+        const fourGrams = generateNGrams(matchedText, 6);
+        fourGrams.sort((a, b) => b.length - a.length);
+
+        let targetFourGramUsed = false; // Flag to ensure target ID is used only once for its first match
+
+        fourGrams.forEach(fourGram => {
+          const escaped = fourGram.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+          const regexPattern = new RegExp(`(${escaped})`, 'gi');
+
+          highlightedText = highlightedText.replace(regexPattern, (match) => {
+            let idToUse;
+            // Check if this is the specific four-gram we want to target for scrolling
+            // And ensure we only assign the targetScrollId to the first occurrence
+            if (targetScrollId && targetScrollFourGram && !targetFourGramUsed && match.toLowerCase() === targetScrollFourGram.toLowerCase()) {
+              idToUse = targetScrollId;
+              targetFourGramUsed = true; // Mark as used
+            } else {
+              idToUse = `highlight-${++highlightIdCounter}`; // Generate a new unique ID for other highlights
+            }
+
+            if (assignAllIds && !allHighlightIds.includes(idToUse)) {
+              allHighlightIds.push(idToUse);
+            }
+            return `<span class="${className}" id="${idToUse}">${match}</span>`;
+          });
+        });
+
+        return highlightedText;
+      }
+
+
+      let matchedParagraphContent = "";
+
+      async function sendMessage() {
+        const inputField = document.getElementById("userInput");
+        const message = inputField.value.trim();
+        if (!message) return;
+
+        addMessage("user", message);
+        inputField.value = "";
+
+        const chatBox = document.getElementById("chatBox");
+        const msgWrapper = document.createElement("div");
+        msgWrapper.className = "flex items-start gap-2 mb-3 justify-start";
+
+        const avatar = document.createElement("div");
+        avatar.innerHTML = '<div class="w-8 h-8 rounded-full bg-gray-400 text-white flex items-center justify-center text-sm">A</div>';
+
+        const bubble = document.createElement("div");
+        bubble.className = "rounded-2xl px-4 py-2 max-w-md text-sm bg-gray-200 text-gray-900 chat-bubble-content";
+        bubble.innerHTML = '<span class="typing"><span class="dot">.</span><span class="dot">.</span><span class="dot">.</span></span>';
+
+        msgWrapper.appendChild(avatar);
+        msgWrapper.appendChild(bubble);
+        chatBox.appendChild(msgWrapper);
+        chatBox.scrollTop = chatBox.scrollHeight;
+
+        try {
+          const response = await fetch("", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ message }),
+          });
+
+          const reader = response.body.getReader();
+          const decoder = new TextDecoder("utf-8");
+          let fullText = "";
+          let documentPayload = null;
+
+          while (true) {
+            const { value, done } = await reader.read();
+            if (done) break;
+            const chunkText = decoder.decode(value, { stream: true });
+            const lines = chunkText.split("\n").filter(line => line.trim() !== "");
+
+            for (const line of lines) {
+              const parsed = JSON.parse(line);
+
+              if (parsed.type === "chunk") {
+                const chunk = parsed.data;
+                fullText += chunk;
+                bubble.innerHTML = formatChatContent(fullText) + '<span class="dot">.</span><span class="dot">.</span><span class="dot">.</span>';
+              }
+
+              if (parsed.type === "end") {
+                documentPayload = parsed.document || [];
+                matchedParagraphContent = parsed.paragraph_content || "";
+
+                bubble.innerHTML = formatChatContent(fullText);
+
+                const refPanel = document.getElementById("referencePanel");
+                refPanel.innerHTML = "";
+                highlightIdCounter = 0; // Reset for new set of reference highlights
+                // allHighlightIds is now primarily managed within openPdfModal for PDF content
+
+                documentPayload.forEach(doc => {
+                  const div = document.createElement("div");
+                  div.className = "mb-4 p-3 bg-white rounded-lg shadow";
+                  const pageContent = doc.page_content ? doc.page_content.replace(/\s+/g, " ").trim() : "No content available";
+
+                  let referenceHtmlContent;
+
+                  if (doc.metadata?.source && doc.metadata.source.endsWith(".pdf")) {
+                    const encodedUrl = encodeURI(doc.metadata.source);
+
+                    let firstHighlightIdForLink = null;
+                    let firstFourGramForLink = null;
+
+                    const matchedFourGrams = generateNGrams(matchedParagraphContent, 4);
+                    // Find the first four-gram from matchedParagraphContent that exists in pageContent
+                    for (const m4g of matchedFourGrams) {
+                      if (pageContent.toLowerCase().includes(m4g.toLowerCase())) {
+                        firstHighlightIdForLink = `highlight-${++highlightIdCounter}`; // Generate ID for the link
+                        firstFourGramForLink = m4g;
+                        break; // Stop after finding the first one
+                      }
+                    }
+
+                    if (firstHighlightIdForLink && firstFourGramForLink) {
+                      // Call highlightFourGrams passing the specific highlightId and fourGramText
+                      referenceHtmlContent = `
+                            <a href="#" onclick="openPdfModal('${encodedUrl}', '${firstHighlightIdForLink}', '${firstFourGramForLink}')" class="text-blue-600 underline block">
+                                <div class="text-sm text-gray-800">${highlightFourGrams(pageContent, matchedParagraphContent, "highlighted-four-gram", false, firstHighlightIdForLink, firstFourGramForLink)}</div>
+                            </a>
+                        `;
+                    } else {
+                      // If no matching four-gram, just open PDF without specific highlight target
+                      referenceHtmlContent = `<a href="#" onclick="openPdfModal('${encodedUrl}')" class="text-blue-600 underline block"><div class="text-sm text-gray-800">${highlightFourGrams(pageContent, matchedParagraphContent, "highlighted-four-gram", false)}</div></a>`;
+                    }
+
+                  } else {
+                    referenceHtmlContent = `<div class="text-sm text-gray-800">${highlightFourGrams(pageContent, matchedParagraphContent, "highlighted-four-gram", false)}</div>`;
+                  }
+
+                  div.innerHTML = `<div class="text-xs text-gray-500 mb-1">📘 Source: <span class="font-semibold">${doc.metadata?.source || "Unknown"}</span></div>${referenceHtmlContent}`;
+                  refPanel.appendChild(div);
+                });
+
+                const pdfLinkRegex = /LINK : <a[^>]+>(https?:\/\/[^\s<]+?\.pdf)<\/a>/g;
+                let match;
+                while ((match = pdfLinkRegex.exec(fullText)) !== null) {
+                  const url = match[1];
+                  const fullUrl = url.startsWith("http") ? url : "/" + url;
+                  const pdfDiv = document.createElement("div");
+                  pdfDiv.className = "mt-4 p-3 bg-white rounded-lg shadow";
+                  pdfDiv.innerHTML = `
+                    <div class="text-xs text-gray-500 mb-2 font-semibold">📄 PDF Link:</div>
+                    LINK : <a href="#" onclick="openPdfModal('${fullUrl}')" class="text-blue-600 underline">${fullUrl.split('/').pop()}</a>
+                  `;
+                  refPanel.appendChild(pdfDiv);
+                }
+              }
+            }
+          }
+        } catch (error) {
+          bubble.textContent = "[Error retrieving response]";
+          console.error("Streaming error:", error);
+        }
+      }
+
+      // No longer used directly for scrolling in the main flow, but kept as a utility.
+      function scrollToHighlight(id) {
+        const el = document.getElementById(id);
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          el.style.outline = '2px solid red';
+          setTimeout(() => el.style.outline = 'none', 1500);
+        } else {
+          console.warn(`Element with ID ${id} not found.`);
+        }
+      }
+
+      // These functions are for cycling through highlights *within* the PDF if needed later.
+      function nextHighlight() {
+        if (allHighlightIds.length === 0) {
+          console.log("No highlights found.");
+          return;
+        }
+        currentHighlightIndex = (currentHighlightIndex + 1) % allHighlightIds.length;
+        scrollToHighlight(allHighlightIds[currentHighlightIndex]);
+      }
+
+      function prevHighlight() {
+        if (allHighlightIds.length === 0) return;
+        currentHighlightIndex = (currentHighlightIndex - 1 + allHighlightIds.length) % allHighlightIds.length;
+        scrollToHighlight(allHighlightIds[currentHighlightIndex]);
+      }
+
+
+      function addMessage(sender, text) {
+        const chatBox = document.getElementById("chatBox");
+        const msgWrapper = document.createElement("div");
+        msgWrapper.className = `flex items-start gap-2 mb-3 ${sender === "user" ? "justify-end" : "justify-start"}`;
+
+        const avatar = document.createElement("div");
+        avatar.innerHTML = sender === "user"
+          ? '<div class="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center text-sm">U</div>'
+          : '<div class="w-8 h-8 rounded-full bg-gray-400 text-white flex items-center justify-center text-sm">A</div>';
+
+        const bubble = document.createElement("div");
+        bubble.className = `rounded-2xl px-4 py-2 max-w-xs text-sm chat-bubble-content ${sender === "user" ? "bg-blue-600 text-white" : "bg-gray-200 text-gray-900"}`;
+
+        bubble.innerHTML = formatChatContent(text);
+
+        if (sender === "user") {
+          msgWrapper.appendChild(bubble);
+          msgWrapper.appendChild(avatar);
+        } else {
+          msgWrapper.appendChild(avatar);
+          msgWrapper.appendChild(bubble);
+        }
+
+        chatBox.appendChild(msgWrapper);
+        chatBox.scrollTop = chatBox.scrollHeight;
+      }
+
+      document.addEventListener("DOMContentLoaded", () => {
+        document.getElementById("userInput").addEventListener("keypress", function (e) {
+          if (e.key === "Enter") sendMessage();
+        });
+      });
+    </script>
+</body>
+
+</html>

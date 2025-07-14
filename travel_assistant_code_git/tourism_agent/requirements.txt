@@ -1,0 +1,28 @@
+# Core Django and Web
+Django==5.2
+django-cors-headers==4.4.0
+django-environ==0.11.2
+gunicorn==23.0.0
+asgiref==3.8.1 # Django's async support
+channels==4.1.0 # If you plan to use WebSockets for real-time communication beyond SSE
+# AI/LLM Frameworks
+langchain==0.3.26
+langchain-openai==0.3.8
+langchain-core==0.3.66
+langchain-community==0.3.26
+langchain-text-splitters==0.3.8
+openai==1.93.0 # Direct OpenAI API client
+# Data Handling & Processing
+pandas==2.2.3
+python-dotenv==1.0.1 # For loading environment variables from .env
+openpyxl==3.0.10 # For Excel file generation (batch QA evaluation)
+xlsxwriter # Used by pandas for Excel writing (implied by openpyxl for .xlsx)
+python-dateutil==2.9.0.post0 # Often a dependency of pandas
+# Document Processing (PDFs)
+PyMuPDF==1.25.4 # For PDF text extraction and potentially highlighting
+pdfminer.six==20231228 # Another PDF text extraction library, keep if PyMuPDF isn't enough
+pdfplumber==0.11.5 # Built on pdfminer.six, provides a more user-friendly API for PDF data extraction
+# Utility & Helpers
+python-decouple==3.8 # Alternative/complement to python-dotenv for config management
+python-slugify # For creating URL-friendly strings (if needed for file names or similar)
+fuzzywuzzy # (or `python-Levenshtein`) if you're doing text similarity matching

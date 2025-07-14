@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>JSON to Excel Converter</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <style>
+        body {
+            background: linear-gradient(to right, #4d4b4f, #908695);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .upload-card {
+            background: #fff;
+            color: #333;
+            border-radius: 15px;
+            padding: 40px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+            width: 100%;
+            max-width: 800px;
+            position: relative;
+            animation: fadeIn 0.8s ease-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .btn-custom {
+            background: linear-gradient(to right, #6a11cb, #2575fc); /* More vibrant gradient */
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        .btn-custom:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            color: white; /* Ensure text color remains white on hover */
+        }
+        .btn-download {
+            background: #28a745; /* Green for download */
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: bold;
+            transition: background-color 0.3s ease;
+        }
+        .btn-download:hover {
+            background: #218838;
+            color: white;
+        }
+        .loader-overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255, 255, 255, 0.95); /* Slightly less transparent */
+            display: none;
+            align-items: center; justify-content: center;
+            z-index: 10;
+            border-radius: 15px;
+            flex-direction: column;
+            gap: 20px; /* Increased gap */
+        }
+        #processingMessage {
+            color: #333;
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+        table {
+            margin-top: 25px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        table thead {
+            background-color: #e9ecef;
+        }
+        table th, table td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #dee2e6;
+        }
+        .drag-area {
+            border: 2px dashed #ced4da;
+            border-radius: 10px;
+            padding: 30px;
+            text-align: center;
+            margin-bottom: 25px;
+            cursor: pointer;
+            transition: border-color 0.3s ease, background-color 0.3s ease;
+            color: #6c757d;
+        }
+        .drag-area.hover {
+            border-color: #6a11cb;
+            background-color: #f0f0f0;
+            color: #495057;
+        }
+        .file-input-label {
+            display: block;
+            margin-top: 10px;
+            font-weight: 500;
+        }
+        .status-message {
+            margin-top: 20px;
+            font-weight: bold;
+        }
+        .status-success {
+            color: #28a745;
+        }
+        .status-error {
+            color: #dc3545;
+        }
+
+        /* --- Gemini-like Loader CSS --- */
+        .gemini-loader {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px; /* Space between dots */
+            height: 40px; /* Height for the loader container */
+        }
+
+        .gemini-dot {
+            width: 12px;
+            height: 12px;
+            background-color: #6a11cb; /* Primary dot color */
+            border-radius: 50%;
+            animation: bounce 1.2s infinite ease-in-out;
+            transform: translateY(0); /* Ensure initial state */
+        }
+
+        .gemini-dot:nth-child(1) {
+            animation-delay: 0s;
+        }
+        .gemini-dot:nth-child(2) {
+            animation-delay: 0.2s;
+            background-color: #2575fc; /* Secondary dot color */
+        }
+        .gemini-dot:nth-child(3) {
+            animation-delay: 0.4s;
+            background-color: #00bcd4; /* Tertiary dot color */
+        }
+        .gemini-dot:nth-child(4) {
+            animation-delay: 0.6s;
+            background-color: #f44336; /* Fourth dot color */
+        }
+
+        @keyframes bounce {
+            0%, 100% {
+                transform: translateY(0);
+                opacity: 1;
+            }
+            50% {
+                transform: translateY(-20px); /* How high the dot bounces */
+                opacity: 0.5;
+            }
+        }
+        /* --- End Gemini-like Loader CSS --- */
+
+    </style>
+</head>
+<body>
+
+<div class="upload-card text-center">
+    <h2 class="mb-4">JSON to Excel Converter</h2>
+    <p class="text-muted mb-4">Seamlessly upload your JSON file and get an instant Excel preview and download.</p>
+
+    <div id="dragArea" class="drag-area"
+         ondragover="handleDragOver(event)"
+         ondragleave="handleDragLeave(event)"
+         ondrop="handleDrop(event)"
+         onclick="document.getElementById('jsonFileInput').click()">
+        <p><i class="bi bi-cloud-arrow-up-fill me-2"></i> Drag & Drop your JSON file here or click to select</p>
+        <input class="form-control d-none" type="file" id="jsonFileInput" accept=".json">
+    </div>
+
+    <button class="btn-custom w-100" onclick="uploadAndAnalyze()">Process JSON</button>
+
+    <div id="errorMessage" class="alert alert-danger mt-3 d-none status-message"></div>
+    <div id="successMessage" class="alert alert-success mt-3 d-none status-message"></div>
+
+
+    <div class="loader-overlay" id="loader">
+        <div class="gemini-loader">
+            <div class="gemini-dot"></div>
+            <div class="gemini-dot"></div>
+            <div class="gemini-dot"></div>
+            <div class="gemini-dot"></div>
+        </div>
+        <div id="processingMessage">Processing your file...</div>
+    </div>
+
+    <div id="excelPreview" class="mt-3"></div>
+    <a id="downloadLink" class="btn-download mt-3 d-none" download="qa_evaluation_results.xlsx">
+        <i class="bi bi-download me-2"></i> Download Excel
+    </a>
+</div>
+
+<script>
+    const dragArea = document.getElementById('dragArea');
+    const fileInput = document.getElementById('jsonFileInput');
+    const errorMessageDiv = document.getElementById('errorMessage');
+    const successMessageDiv = document.getElementById('successMessage');
+    const loader = document.getElementById('loader');
+    const excelPreview = document.getElementById('excelPreview');
+    const downloadLink = document.getElementById('downloadLink');
+
+    function showMessage(element, message, isError = false) {
+        element.textContent = message;
+        element.classList.remove('d-none');
+        if (isError) {
+            element.classList.remove('alert-success');
+            element.classList.add('alert-danger');
+        } else {
+            element.classList.remove('alert-danger');
+            element.classList.add('alert-success');
+        }
+    }
+
+    function hideMessages() {
+        errorMessageDiv.classList.add('d-none');
+        successMessageDiv.classList.add('d-none');
+    }
+
+    function handleDragOver(event) {
+        event.preventDefault();
+        dragArea.classList.add('hover');
+    }
+
+    function handleDragLeave(event) {
+        dragArea.classList.remove('hover');
+    }
+
+    function handleDrop(event) {
+        event.preventDefault();
+        dragArea.classList.remove('hover');
+        const files = event.dataTransfer.files;
+        if (files.length > 0) {
+            fileInput.files = files; // Assign dropped files to the input
+            // Optionally, trigger uploadAndAnalyze directly or show file name
+            // uploadAndAnalyze(); // Uncomment to auto-process on drop
+            showMessage(successMessageDiv, `File "${files[0].name}" selected. Click 'Process JSON'.`);
+        }
+    }
+
+    function uploadAndAnalyze() {
+        hideMessages();
+        excelPreview.innerHTML = '';
+        downloadLink.classList.add('d-none');
+
+        const file = fileInput.files[0];
+
+        if (!file) {
+            showMessage(errorMessageDiv, 'Please select or drag a JSON file.', true);
+            return;
+        }
+
+        if (file.type !== 'application/json') {
+            showMessage(errorMessageDiv, 'Invalid file type. Please upload a JSON file.', true);
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onloadstart = function() {
+            loader.style.display = 'flex';
+            document.getElementById('processingMessage').textContent = 'Reading file...';
+        };
+        reader.onload = function(e) {
+            const jsonContent = e.target.result;
+            try {
+                const parsedJson = JSON.parse(jsonContent);
+                document.getElementById('processingMessage').textContent = 'Sending to server for analysis...';
+
+                // Simulate a network request
+                fetch('/upload-json/', { // Replace with your actual backend endpoint
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(parsedJson)
+                }).then(response => {
+                    if (!response.ok) {
+                        return response.text().then(text => { throw new Error(text || 'Server error during processing.'); });
+                    }
+                    return response.blob();
+                }).then(blob => {
+                    loader.style.display = 'none';
+                    const url = window.URL.createObjectURL(blob);
+                    downloadLink.href = url;
+                    downloadLink.classList.remove('d-none');
+
+                    showMessage(successMessageDiv, 'File processed successfully! You can download the Excel file and preview it below.');
+
+                    const fileReader = new FileReader();
+                    fileReader.onload = function(evt) {
+                        const data = evt.target.result;
+                        const workbook = XLSX.read(data, { type: 'binary' });
+                        const firstSheet = workbook.SheetNames[0];
+                        const sheetData = XLSX.utils.sheet_to_html(workbook.Sheets[firstSheet]);
+                        excelPreview.innerHTML = sheetData;
+                    };
+                    fileReader.readAsBinaryString(blob);
+                }).catch(err => {
+                    loader.style.display = 'none';
+                    showMessage(errorMessageDiv, `Error: ${err.message}`, true);
+                    console.error('Fetch error:', err);
+                });
+
+            } catch (err) {
+                loader.style.display = 'none';
+                showMessage(errorMessageDiv, 'Invalid JSON format in the file. Please check your JSON file.', true);
+            }
+        };
+        reader.onerror = function() {
+            loader.style.display = 'none';
+            showMessage(errorMessageDiv, 'Error reading file. Please try again.', true);
+        };
+        reader.readAsText(file);
+    }
+</script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+</body>
+</html>
